@@ -131,6 +131,10 @@ void RosThread::manageTaskHandling()
         // report this new task to the coalition leader
         messageTaskInfo2LeaderPub.publish(msg);
 
+        // update waiting task time info
+        waitingTask.encounteringTime = newTasksList.at(0).encounteringTime;
+        waitingTask.timeOutDuration = newTasksList.at(0).timeOutDuration;
+
         // remove this newly incoming task from  newTaskList vector
         newTasksList.remove(0);
     }
@@ -138,7 +142,6 @@ void RosThread::manageTaskHandling()
 
     if (currentState == HS_HANDLING)
     {
-
         uint currentTime = QDateTime::currentDateTime().toTime_t();
 
         if ( (currentTime-handlingTask.startHandlingTime)>=handlingTask.handlingDuration )
@@ -146,9 +149,28 @@ void RosThread::manageTaskHandling()
             completedTasks.append(handlingTask);
 
             currentState = HS_IDLE;
+            std_msgs::UInt8 msgTaskObserveOK;
+            msgTaskObserveOK.data = 1;
+            // start observing task
+            messageTaskObserveOKPub.publish(msgTaskObserveOK);
         }
     }
 
+    // waiting for a response from the leader
+    else if (currentState == HS_WAITING_TASK_RESPONSE_FROM_LEADER)
+    {
+        // if task timeout then continue observing
+        uint currentTime = QDateTime::currentDateTime().toTime_t();
+        if (currentTime - waitingTask.encounteringTime >= waitingTask.timeOutDuration)
+        {
+            currentState = HS_IDLE;
+
+            // start observing task
+            std_msgs::UInt8 msgTaskObserveOK;
+            msgTaskObserveOK.data = 1;
+            messageTaskObserveOKPub.publish(msgTaskObserveOK);
+        }
+    }
  /*
     if (currentState == HS_IDLE)
     {
@@ -317,6 +339,16 @@ void RosThread::handleLeaderCmdMessage(messageDecoderISLH::cmdFromLeaderMessage 
         // the robot was removed from the coalition,
         // hence it now is leader of itself
         leaderRobotID = ownRobotID;
+
+        // since robot changed coalition current state must be idle
+        // and we must continue observing task
+        currentState = HS_IDLE;
+
+        // start observing task
+        std_msgs::UInt8 msgTaskObserveOK;
+        msgTaskObserveOK.data = 1;
+        messageTaskObserveOKPub.publish(msgTaskObserveOK);
+
 
         qDebug()<< " Splitted from the coalition";
     }

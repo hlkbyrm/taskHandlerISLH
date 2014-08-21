@@ -100,7 +100,7 @@ private:
      int leaderRobotID;
 
      QVector <taskProp> newTasksList;        
-     QVector <taskProp> waitingTasks;
+     taskProp waitingTask;
      QVector <taskProp> completedTasks;
      QVector <taskProp> timedoutTasks;
 
