@@ -1,13 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(taskHandlerISLH)
 
+
+
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
-  message_generation
+  geometry_msgs
+  ISLH_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -69,13 +72,6 @@ qt4_automoc(${qt_SOURCES})
 #   Message2.msg
 # )
 
-add_message_files(
-  DIRECTORY msg 
-  FILES
-  taskInfo2LeaderMessage.msg
-)
-generate_messages(DEPENDENCIES std_msgs)
-
 ## Generate services in the 'srv' folder
 # add_service_files(
 #   FILES
@@ -110,7 +106,7 @@ catkin_package(
 #  LIBRARIES taskHandlerISLH
 #  CATKIN_DEPENDS roscpp std_msgs
 #  DEPENDS system_lib
-   CATKIN_DEPENDS message_runtime
+   CATKIN_DEPENDS ISLH_msgs
 )
 
 ###########

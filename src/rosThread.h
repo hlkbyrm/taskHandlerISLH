@@ -5,10 +5,10 @@
 #include <QObject>
 #include <QTime>
 #include <QtCore/QString>
-#include <taskHandlerISLH/taskInfo2LeaderMessage.h>
-#include <messageDecoderISLH/cmdFromLeaderMessage.h>
-#include <messageDecoderISLH/taskInfoFromRobotMessage.h>
-#include <taskObserverISLH/newTaskInfoMessage.h>
+#include <ISLH_msgs/taskInfo2LeaderMessage.h>
+#include <ISLH_msgs/cmdFromLeaderMessage.h>
+#include <ISLH_msgs/taskInfoFromRobotMessage.h>
+#include <ISLH_msgs/newTaskInfoMessage.h>
 #include <std_msgs/UInt8.h>
 #include <geometry_msgs/Pose2D.h>
 
@@ -110,9 +110,9 @@ private:
 
      void manageTaskHandling();
 
-     void handleNewTaskMessage(taskObserverISLH::newTaskInfoMessage msg);
+     void handleNewTaskMessage(ISLH_msgs::newTaskInfoMessage msg);
 
-     void handleLeaderCmdMessage(messageDecoderISLH::cmdFromLeaderMessage msg);
+     void handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg);
 
      void handleCurrentPoseMessage(geometry_msgs::Pose2D msg);
 

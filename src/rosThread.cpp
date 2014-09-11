@@ -47,7 +47,7 @@ void RosThread::work()
 
     messageNewTaskInfoSub = n.subscribe("taskObserverISLH/newTaskInfo",5,&RosThread::handleNewTaskMessage, this);
 
-    messageTaskInfo2LeaderPub = n.advertise<taskHandlerISLH::taskInfo2LeaderMessage>("taskHandlerISLH/taskInfo2Leader",5);
+    messageTaskInfo2LeaderPub = n.advertise<ISLH_msgs::taskInfo2LeaderMessage>("taskHandlerISLH/taskInfo2Leader",5);
 
     messageCmdFromLeaderSub = n.subscribe("messageDecoderISLH/cmdFromLeader",5,&RosThread::handleLeaderCmdMessage, this);
 
@@ -115,7 +115,7 @@ void RosThread::manageTaskHandling()
             currentState = HS_WAITING_TASK_RESPONSE_FROM_LEADER;
         }
 
-        taskHandlerISLH::taskInfo2LeaderMessage msg;
+        ISLH_msgs::taskInfo2LeaderMessage msg;
 
         msg.infoMessageType = INFO_R2L_NEW_TASK_INFO;
         msg.taskUUID = newTasksList.at(0).taskUUID.toStdString();
@@ -234,7 +234,7 @@ void RosThread::manageTaskHandling()
 
 
 
-void RosThread::handleNewTaskMessage(taskObserverISLH::newTaskInfoMessage msg)
+void RosThread::handleNewTaskMessage(ISLH_msgs::newTaskInfoMessage msg)
 {
 
     taskProp newTask;
@@ -274,7 +274,7 @@ void RosThread::handleNewTaskMessage(taskObserverISLH::newTaskInfoMessage msg)
 
 }
 
-void RosThread::handleLeaderCmdMessage(messageDecoderISLH::cmdFromLeaderMessage msg)
+void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
 {
     if (msg.cmdTypeID==CMD_L2R_MOVE_TO_TASK_SITE)
     {
@@ -377,7 +377,7 @@ void RosThread::handleTargetReachedMessage(std_msgs::UInt8 msg)
     {
         if (currentState == HS_SUCCORING) // while succoring (moving to task site)
         {
-            taskHandlerISLH::taskInfo2LeaderMessage msg;
+            ISLH_msgs::taskInfo2LeaderMessage msg;
 
             msg.infoMessageType = INFO_R2L_REACHED_TO_TASK;
             msg.senderRobotID = ownRobotID;
@@ -391,7 +391,7 @@ void RosThread::handleTargetReachedMessage(std_msgs::UInt8 msg)
         }
         else if (currentState == HS_IDLE) // while moving to goal pose (detecting task)
         {
-            taskHandlerISLH::taskInfo2LeaderMessage msg;
+            ISLH_msgs::taskInfo2LeaderMessage msg;
 
             msg.infoMessageType = INFO_R2L_REACHED_TO_GOAL;
             msg.senderRobotID = ownRobotID;
