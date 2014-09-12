@@ -14,6 +14,7 @@
 
 enum HandlingState
 {
+    HS_STOP = -1,
     HS_IDLE = 0,
     HS_WAITING_TASK_RESPONSE_FROM_LEADER = 1,
     HS_WAITING_GOAL_POSE_FROM_LEADER = 2,
@@ -24,6 +25,7 @@ enum HandlingState
 
 enum Leader2RobotCmdMsgs
 {
+    CMD_L2R_START_OR_STOP_MISSION = 0,
     CMD_L2R_START_HANDLING = 1,
     CMD_L2R_MOVE_TO_TASK_SITE = 2,
     CMD_L2R_MOVE_TO_GOAL_POSE = 3,
@@ -90,6 +92,8 @@ private:
 
      ros::Subscriber messageTargetReachedSub;
 
+
+     bool startMission;
 
      HandlingState currentState;
 

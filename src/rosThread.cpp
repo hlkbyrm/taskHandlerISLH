@@ -10,7 +10,9 @@ RosThread::RosThread()
 {
     shutdown = false;
 
-    currentState = HS_IDLE;
+    startMission = false;
+
+    currentState = HS_STOP;
 
 }
 
@@ -50,8 +52,6 @@ void RosThread::work()
     messageTaskInfo2LeaderPub = n.advertise<ISLH_msgs::taskInfo2LeaderMessage>("taskHandlerISLH/taskInfo2Leader",5);
 
     messageCmdFromLeaderSub = n.subscribe("messageDecoderISLH/cmdFromLeader",5,&RosThread::handleLeaderCmdMessage, this);
-
-    //messageTaskInfoFromRobot = n.advertise<messageDecoderISLH::taskInfoFromRobotMessage>("messageDecoderISLH/taskInfoFromRobot",5);
 
     messageTaskObserveOKPub = n.advertise<std_msgs::UInt8>("taskHandlerISLH/taskObserveOK", 5);
 
@@ -101,7 +101,7 @@ void RosThread::manageTaskHandling()
             std_msgs::UInt8 msgTaskObserveOK;
             msgTaskObserveOK.data = 0;
 
-            // stop observing tash while trying to handle a task
+            // stop observing task while trying to handle a task
             messageTaskObserveOKPub.publish(msgTaskObserveOK);
 
             // the robot stays in its position while waiting for an answer from the leader
@@ -140,7 +140,15 @@ void RosThread::manageTaskHandling()
     }
 
 
-    if (currentState == HS_HANDLING)
+    if (currentState == HS_STOP)
+    {
+        if (startMission == true)
+        {
+            currentState = HS_IDLE;
+        }
+
+    }
+    else if (currentState == HS_HANDLING)
     {
         uint currentTime = QDateTime::currentDateTime().toTime_t();
 
@@ -171,65 +179,7 @@ void RosThread::manageTaskHandling()
             messageTaskObserveOKPub.publish(msgTaskObserveOK);
         }
     }
- /*
-    if (currentState == HS_IDLE)
-    {
-        if (newTasksList.isEmpty()==false)
-        {
-            //QString taskUUID = newTasksList.at(0).taskUUID;
 
-                messageDecoderISLH::taskInfo2LeaderMessage msg;
-
-                msg.posX = newTasksList.at(0).pose[0];
-                msg.posY = newTasksList.at(0).pose[1];
-                msg.senderRobotID = ownRobotID;
-                msg.receiverRobotID = leaderRobotID;
-                msg.handlingDuration = newTasksList.at(0).handlingDuration;
-                msg.timeOutDuration = newTasksList.at(0).timeOutDuration;
-                msg.requiredResources = newTasksList.at(0).requiredResources.toStdString();
-                msg.encounteringTime = newTasksList.at(0).encounteringTime;
-
-                // report this new task to the leader
-                messageTaskInfo2LeaderPub.publish(msg);
-
-                // add this newly incoming task to  waitingTasks vector
-                waitingTasks.append(newTasksList.at(0));
-
-                // remove this newly incoming task from  newTaskList vector
-                newTasksList.remove(0);
-           // }
-
-            std_msgs::UInt8 msgTaskObserveOK;
-            msgTaskObserveOK.data = 0;
-
-            // stop observing tash while trying to handle a task
-            messageTaskObserveOKPub.publish(msgTaskObserveOK);
-
-            // the robot stays in its position while waiting for an answer from the leader
-            geometry_msgs::Pose2D msgTagetPose;
-
-            msgTagetPose.x = currentPose[0];
-            msgTagetPose.x = currentPose[1];
-
-            messageTargetPosePub.publish(msgTagetPose);
-
-            currentState = HS_WAITING_TASK_RESPONSE_FROM_LEADER;
-
-        }
-    }
-    else if (currentState == HS_WAITING_TASK_RESPONSE_FROM_LEADER)
-    {
-
-    }
-    else if (currentState == HS_SUCCORING)
-    {
-
-    }
-    else if (currentState == HS_HANDLING)
-    {
-
-    }
-*/
 }
 
 
@@ -245,19 +195,6 @@ void RosThread::handleNewTaskMessage(ISLH_msgs::newTaskInfoMessage msg)
     newTask.taskUUID = QString::fromStdString(msg.taskUUID);
     newTask.handlingDuration = msg.handlingDuration;
     newTask.timeOutDuration = msg.timeOutDuration;
-
-/*
-    QString newTaskRR =  QString::fromStdString(msg.requiredResources);
-    qDebug()<< " Task - required resources " << newTaskRR;
-    // Split the data (Comma seperated format)
-    QStringList newTaskRRList = newTaskRR.split(",",QString::SkipEmptyParts);
-    qDebug()<<"Number of resources parts"<<newTaskRRList.size();
-    qDebug()<<newTaskRRList;
-    for(int i = 0; i < newTaskRRList.size();i++)
-    {
-        newTask.requiredResources.append(newTaskRRList.at(i).toDouble());
-    }
-    */
 
     newTask.requiredResources = QString::fromStdString(msg.requiredResources);
 
@@ -276,7 +213,32 @@ void RosThread::handleNewTaskMessage(ISLH_msgs::newTaskInfoMessage msg)
 
 void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
 {
-    if (msg.cmdTypeID==CMD_L2R_MOVE_TO_TASK_SITE)
+    if (msg.cmdTypeID == CMD_L2R_START_OR_STOP_MISSION)
+    {
+        QString msgStr = QString::fromStdString(msg.cmdMessage);
+
+        if (msgStr == "START-MISSION")
+        {
+            startMission = true;
+
+            // start observing task while trying to handle a task
+            std_msgs::UInt8 msgTaskObserveOK;
+            msgTaskObserveOK.data = 1;
+            messageTaskObserveOKPub.publish(msgTaskObserveOK);
+        }
+        else if (msgStr == "STOP-MISSION")
+        {
+            startMission = false;
+
+            // stop observing task while trying to handle a task
+            std_msgs::UInt8 msgTaskObserveOK;
+            msgTaskObserveOK.data = 0;
+            messageTaskObserveOKPub.publish(msgTaskObserveOK);
+
+            currentState = HS_STOP;
+        }
+    }
+    else if (msg.cmdTypeID==CMD_L2R_MOVE_TO_TASK_SITE)
     {
         // message content: taskSitePoseX, taskSitePoseY
 
@@ -314,6 +276,12 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
 
         handlingTask.status = 1;
 
+        // stop the robot by setting current pose as target pose since it is within the task site
+        geometry_msgs::Pose2D msgTagetPose;
+        msgTagetPose.x = currentPose.X;
+        msgTagetPose.y = currentPose.Y;
+        messageTargetPosePub.publish(msgTagetPose);
+
         currentState = HS_HANDLING;
 
     }
@@ -324,12 +292,11 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
         QString cmdMessage = QString::fromStdString(msg.cmdMessage);
         // Split the data (Comma seperated format)
         QStringList cmdList = cmdMessage.split(",",QString::SkipEmptyParts);
+
         // Go to the goal pose
         geometry_msgs::Pose2D msgTagetPose;
-
         msgTagetPose.x = cmdList.at(0).toDouble();
         msgTagetPose.y = cmdList.at(1).toDouble();
-
         messageTargetPosePub.publish(msgTagetPose);
 
         currentState = HS_IDLE;
