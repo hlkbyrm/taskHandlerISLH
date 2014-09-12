@@ -84,6 +84,8 @@ private:
 
      ros::Publisher messageTargetPosePub;
 
+     ros::Publisher messageNavigationOKPub;
+
      ros::Subscriber messageNewTaskInfoSub;
 
      ros::Subscriber messageCmdFromLeaderSub;

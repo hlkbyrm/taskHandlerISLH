@@ -61,6 +61,7 @@ void RosThread::work()
 
     messageTargetReachedSub = n.subscribe("navigationISLH/targetReached", 5, &RosThread::handleTargetReachedMessage, this);
 
+    messageNavigationOKPub = n.advertise<std_msgs::UInt8>("taskHandlerISLH/navigationOK", 5);
 
     while(ros::ok())
     {
@@ -225,6 +226,12 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
             std_msgs::UInt8 msgTaskObserveOK;
             msgTaskObserveOK.data = 1;
             messageTaskObserveOKPub.publish(msgTaskObserveOK);
+
+            // start navigation
+            std_msgs::UInt8 msgNavigationOK;
+            msgNavigationOK.data = 1;
+            messageNavigationOKPub.publish(msgNavigationOK);
+
         }
         else if (msgStr == "STOP-MISSION")
         {
@@ -234,6 +241,12 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
             std_msgs::UInt8 msgTaskObserveOK;
             msgTaskObserveOK.data = 0;
             messageTaskObserveOKPub.publish(msgTaskObserveOK);
+
+            // stop navigation
+            std_msgs::UInt8 msgNavigationOK;
+            msgNavigationOK.data = 0;
+            messageNavigationOKPub.publish(msgNavigationOK);
+
 
             currentState = HS_STOP;
         }
