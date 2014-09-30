@@ -86,6 +86,8 @@ private:
 
      ros::Publisher messageNavigationOKPub;
 
+     ros::Publisher taskHandlerStatePub;
+
      ros::Subscriber messageNewTaskInfoSub;
 
      ros::Subscriber messageCmdFromLeaderSub;
@@ -104,6 +106,8 @@ private:
      int ownRobotID;
 
      int leaderRobotID;
+
+     int queueSize;
 
      QVector <taskProp> newTasksList;        
      taskProp waitingTask;

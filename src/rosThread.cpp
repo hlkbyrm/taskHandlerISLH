@@ -5,7 +5,6 @@
 #include <QFile>
 
 
-
 RosThread::RosThread()
 {
     shutdown = false;
@@ -47,21 +46,23 @@ void RosThread::work()
 
 
 
-    messageNewTaskInfoSub = n.subscribe("taskObserverISLH/newTaskInfo",5,&RosThread::handleNewTaskMessage, this);
+    messageNewTaskInfoSub = n.subscribe("taskObserverISLH/newTaskInfo",queueSize,&RosThread::handleNewTaskMessage, this);
 
-    messageTaskInfo2LeaderPub = n.advertise<ISLH_msgs::taskInfo2LeaderMessage>("taskHandlerISLH/taskInfo2Leader",5);
+    messageTaskInfo2LeaderPub = n.advertise<ISLH_msgs::taskInfo2LeaderMessage>("taskHandlerISLH/taskInfo2Leader",queueSize);
 
-    messageCmdFromLeaderSub = n.subscribe("messageDecoderISLH/cmdFromLeader",5,&RosThread::handleLeaderCmdMessage, this);
+    messageCmdFromLeaderSub = n.subscribe("messageDecoderISLH/cmdFromLeader",queueSize,&RosThread::handleLeaderCmdMessage, this);
 
-    messageTaskObserveOKPub = n.advertise<std_msgs::UInt8>("taskHandlerISLH/taskObserveOK", 5);
+    messageTaskObserveOKPub = n.advertise<std_msgs::UInt8>("taskHandlerISLH/taskObserveOK", queueSize);
 
-    messageTargetPosePub = n.advertise<geometry_msgs::Pose2D>("taskHandlerISLH/targetPose", 5);
+    messageTargetPosePub = n.advertise<geometry_msgs::Pose2D>("taskHandlerISLH/targetPose", queueSize);
 
-    messageCurrentPoseSub = n.subscribe("navigationISLH/currentPose", 5,&RosThread::handleCurrentPoseMessage, this);
+    messageCurrentPoseSub = n.subscribe("navigationISLH/currentPose", queueSize,&RosThread::handleCurrentPoseMessage, this);
 
-    messageTargetReachedSub = n.subscribe("navigationISLH/targetReached", 5, &RosThread::handleTargetReachedMessage, this);
+    messageTargetReachedSub = n.subscribe("navigationISLH/targetReached", queueSize, &RosThread::handleTargetReachedMessage, this);
 
-    messageNavigationOKPub = n.advertise<std_msgs::UInt8>("taskHandlerISLH/navigationOK", 5);
+    messageNavigationOKPub = n.advertise<std_msgs::UInt8>("taskHandlerISLH/navigationOK", queueSize);
+
+    taskHandlerStatePub = n.advertise<std_msgs::UInt8>("taskHandlerISLH/robotInfo2Monitor", queueSize);
 
     while(ros::ok())
     {
@@ -114,6 +115,10 @@ void RosThread::manageTaskHandling()
             messageTargetPosePub.publish(msgTagetPose);
 
             currentState = HS_WAITING_TASK_RESPONSE_FROM_LEADER;
+
+            std_msgs::UInt8 msg;
+            msg.data = currentState;
+            taskHandlerStatePub.publish(msg);
         }
 
         ISLH_msgs::taskInfo2LeaderMessage msg;
@@ -146,6 +151,10 @@ void RosThread::manageTaskHandling()
         if (startMission == true)
         {
             currentState = HS_IDLE;
+
+            std_msgs::UInt8 msg;
+            msg.data = currentState;
+            taskHandlerStatePub.publish(msg);
         }
 
     }
@@ -158,6 +167,11 @@ void RosThread::manageTaskHandling()
             completedTasks.append(handlingTask);
 
             currentState = HS_IDLE;
+
+            std_msgs::UInt8 msg;
+            msg.data = currentState;
+            taskHandlerStatePub.publish(msg);
+
             std_msgs::UInt8 msgTaskObserveOK;
             msgTaskObserveOK.data = 1;
             // start observing task
@@ -173,6 +187,10 @@ void RosThread::manageTaskHandling()
         if (currentTime - waitingTask.encounteringTime >= waitingTask.timeOutDuration)
         {
             currentState = HS_IDLE;
+
+            std_msgs::UInt8 msg;
+            msg.data = currentState;
+            taskHandlerStatePub.publish(msg);
 
             // start observing task
             std_msgs::UInt8 msgTaskObserveOK;
@@ -249,6 +267,10 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
 
 
             currentState = HS_STOP;
+
+            std_msgs::UInt8 msg;
+            msg.data = currentState;
+            taskHandlerStatePub.publish(msg);
         }
     }
     else if (msg.cmdTypeID==CMD_L2R_MOVE_TO_TASK_SITE)
@@ -268,6 +290,10 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
         messageTargetPosePub.publish(msgTagetPose);
 
         currentState = HS_SUCCORING;
+
+        std_msgs::UInt8 msg;
+        msg.data = currentState;
+        taskHandlerStatePub.publish(msg);
 
     }
     else if  (msg.cmdTypeID==CMD_L2R_START_HANDLING)
@@ -297,6 +323,10 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
 
         currentState = HS_HANDLING;
 
+        std_msgs::UInt8 msg;
+        msg.data = currentState;
+        taskHandlerStatePub.publish(msg);
+
     }
     else if  (msg.cmdTypeID==CMD_L2R_MOVE_TO_GOAL_POSE)
     {
@@ -313,6 +343,10 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
         messageTargetPosePub.publish(msgTagetPose);
 
         currentState = HS_IDLE;
+
+        std_msgs::UInt8 msg;
+        msg.data = currentState;
+        taskHandlerStatePub.publish(msg);
     }
     else if (msg.cmdTypeID == CMD_L2R_SPLIT_FROM_COALITION)
     {
@@ -323,6 +357,10 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
         // since robot changed coalition current state must be idle
         // and we must continue observing task
         currentState = HS_IDLE;
+
+        std_msgs::UInt8 msg;
+        msg.data = currentState;
+        taskHandlerStatePub.publish(msg);
 
         // start observing task
         std_msgs::UInt8 msgTaskObserveOK;
@@ -368,6 +406,10 @@ void RosThread::handleTargetReachedMessage(std_msgs::UInt8 msg)
             messageTaskInfo2LeaderPub.publish(msg);
 
             currentState = HS_WAITING_HANDLE_START_FROM_LEADER;
+
+            std_msgs::UInt8 _msg;
+            _msg.data = currentState;
+            taskHandlerStatePub.publish(_msg);
         }
         else if (currentState == HS_IDLE) // while moving to goal pose (detecting task)
         {
@@ -382,6 +424,10 @@ void RosThread::handleTargetReachedMessage(std_msgs::UInt8 msg)
             messageTaskInfo2LeaderPub.publish(msg);
 
             currentState = HS_WAITING_GOAL_POSE_FROM_LEADER;
+
+            std_msgs::UInt8 _msg;
+            _msg.data = currentState;
+            taskHandlerStatePub.publish(_msg);
         }
     }
 }
@@ -413,6 +459,10 @@ bool RosThread::readConfigFile(QString filename)
         ownRobotID = result["robotID"].toInt();
 
         leaderRobotID = ownRobotID;
+
+
+        queueSize = result["queueSize"].toInt();
+        qDebug()<<result["queueSize"].toString();
 
     }
     file.close();
