@@ -30,7 +30,9 @@ enum Leader2RobotCmdMsgs
     CMD_L2R_MOVE_TO_TASK_SITE = 2,
     CMD_L2R_MOVE_TO_GOAL_POSE = 3,
     CMD_L2R_SPLIT_FROM_COALITION = 4,
-    CMD_L2R_LEADER_CHANGED = 5
+    CMD_L2R_LEADER_CHANGED = 5,
+    CMD_L2R_NEW_ALL_TARGET_POSES = 6, // messageDecoder handles this kind of messages. (publish messageDecoderISL/targetPoseList)
+    CMD_L2R_I_AM_LEADER = 7
 };
 
 

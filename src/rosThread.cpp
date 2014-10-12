@@ -278,6 +278,9 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
         // message content: taskSitePoseX, taskSitePoseY
 
         QString cmdMessage = QString::fromStdString(msg.cmdMessage);
+
+        qDebug() << "CMD_L2R_MOVE_TO_TASK_SITE -> msg.cmdMessage: "<<cmdMessage;
+
         // Split the data (Comma seperated format)
         QStringList cmdList = cmdMessage.split(",",QString::SkipEmptyParts);
 
@@ -370,7 +373,7 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
 
         qDebug()<< " Splitted from the coalition";
     }
-    else if (msg.cmdTypeID == CMD_L2R_LEADER_CHANGED)
+    else if ( (msg.cmdTypeID == CMD_L2R_LEADER_CHANGED) || (msg.cmdTypeID == CMD_L2R_I_AM_LEADER) )
     {
         QString cmdMessage = QString::fromStdString(msg.cmdMessage);
 
