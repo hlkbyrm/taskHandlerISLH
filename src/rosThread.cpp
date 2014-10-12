@@ -275,6 +275,11 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
     }
     else if (msg.cmdTypeID==CMD_L2R_MOVE_TO_TASK_SITE)
     {
+        // stop observing task while succoring
+        std_msgs::UInt8 msgTaskObserveOK;
+        msgTaskObserveOK.data = 0;
+        messageTaskObserveOKPub.publish(msgTaskObserveOK);
+
         // message content: taskSitePoseX, taskSitePoseY
 
         QString cmdMessage = QString::fromStdString(msg.cmdMessage);
