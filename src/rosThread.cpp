@@ -13,6 +13,8 @@ RosThread::RosThread()
 
     currentState = HS_STOP;
 
+     qDebug()<<"currentState <- HS_STOP";
+
 }
 
 
@@ -116,6 +118,8 @@ void RosThread::manageTaskHandling()
 
             currentState = HS_WAITING_TASK_RESPONSE_FROM_LEADER;
 
+            qDebug()<<"currentState <- HS_WAITING_TASK_RESPONSE_FROM_LEADER";
+
             std_msgs::UInt8 msg;
             msg.data = currentState;
             taskHandlerStatePub.publish(msg);
@@ -152,6 +156,8 @@ void RosThread::manageTaskHandling()
         {
             currentState = HS_IDLE;
 
+            qDebug()<<"currentState <- HS_IDLE";
+
             std_msgs::UInt8 msg;
             msg.data = currentState;
             taskHandlerStatePub.publish(msg);
@@ -164,9 +170,11 @@ void RosThread::manageTaskHandling()
 
         if ( (currentTime-handlingTask.startHandlingTime)>=handlingTask.handlingDuration )
         {
-            completedTasks.append(handlingTask);
+            completedTasks.append(handlingTask);           
 
             currentState = HS_IDLE;
+
+            qDebug()<<"currentState <- HS_IDLE";
 
             std_msgs::UInt8 msg;
             msg.data = currentState;
@@ -187,6 +195,8 @@ void RosThread::manageTaskHandling()
         if (currentTime - waitingTask.encounteringTime >= waitingTask.timeOutDuration)
         {
             currentState = HS_IDLE;
+
+            qDebug()<<"currentState <- HS_IDLE";
 
             std_msgs::UInt8 msg;
             msg.data = currentState;
@@ -268,6 +278,8 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
 
             currentState = HS_STOP;
 
+            qDebug()<<"currentState <- HS_STOP";
+
             std_msgs::UInt8 msg;
             msg.data = currentState;
             taskHandlerStatePub.publish(msg);
@@ -298,6 +310,8 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
         messageTargetPosePub.publish(msgTagetPose);
 
         currentState = HS_SUCCORING;
+
+        qDebug()<<"currentState <- HS_SUCCORING";
 
         std_msgs::UInt8 msg;
         msg.data = currentState;
@@ -331,6 +345,8 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
 
         currentState = HS_HANDLING;
 
+        qDebug()<<"currentState <- HS_HANDLING";
+
         std_msgs::UInt8 msg;
         msg.data = currentState;
         taskHandlerStatePub.publish(msg);
@@ -352,6 +368,8 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
 
         currentState = HS_IDLE;
 
+        qDebug()<<"currentState <- HS_IDLE";
+
         std_msgs::UInt8 msg;
         msg.data = currentState;
         taskHandlerStatePub.publish(msg);
@@ -365,6 +383,8 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
         // since robot changed coalition current state must be idle
         // and we must continue observing task
         currentState = HS_IDLE;
+
+        qDebug()<<"currentState <- HS_IDLE";
 
         std_msgs::UInt8 msg;
         msg.data = currentState;
@@ -415,6 +435,8 @@ void RosThread::handleTargetReachedMessage(std_msgs::UInt8 msg)
 
             currentState = HS_WAITING_HANDLE_START_FROM_LEADER;
 
+            qDebug()<<"currentState <- HS_WAITING_HANDLE_START_FROM_LEADER";
+
             std_msgs::UInt8 _msg;
             _msg.data = currentState;
             taskHandlerStatePub.publish(_msg);
@@ -432,6 +454,8 @@ void RosThread::handleTargetReachedMessage(std_msgs::UInt8 msg)
             messageTaskInfo2LeaderPub.publish(msg);
 
             currentState = HS_WAITING_GOAL_POSE_FROM_LEADER;
+
+            qDebug()<<"currentState <- HS_WAITING_GOAL_POSE_FROM_LEADER";
 
             std_msgs::UInt8 _msg;
             _msg.data = currentState;
