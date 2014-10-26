@@ -58,7 +58,7 @@ void RosThread::work()
 
     messageTargetPosePub = n.advertise<geometry_msgs::Pose2D>("taskHandlerISLH/targetPose", queueSize);
 
-    messageCurrentPoseSub = n.subscribe("navigationISLH/currentPose", queueSize,&RosThread::handleCurrentPoseMessage, this);
+    messageCurrentPoseSub = n.subscribe("navigationISLH/currentPose", 1,&RosThread::handleCurrentPoseMessage, this);
 
     messageTargetReachedSub = n.subscribe("navigationISLH/targetReached", queueSize, &RosThread::handleTargetReachedMessage, this);
 
