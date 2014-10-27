@@ -370,6 +370,11 @@ void RosThread::handleLeaderCmdMessage(ISLH_msgs::cmdFromLeaderMessage msg)
 
         qDebug()<<"currentState <- HS_IDLE";
 
+        // start observing task
+        std_msgs::UInt8 msgTaskObserveOK;
+        msgTaskObserveOK.data = 1;
+        messageTaskObserveOKPub.publish(msgTaskObserveOK);
+
         std_msgs::UInt8 msg;
         msg.data = currentState;
         taskHandlerStatePub.publish(msg);
